@@ -449,61 +449,86 @@
 
     // --- NOUVELLE LOGIQUE POUR L'ENVOI DU FORMULAIRE ---
     document.getElementById('bookingForm').addEventListener('submit', async function(e) {
-        e.preventDefault(); // Empêche le rechargement de la page
-        
-        // 1. Récupérer et formater les données pour le backend
+        e.preventDefault(); // This just stops the page from reloading
+
+        // STEP A: The computer reads all the information from the form fields
         const nomClient = document.getElementById('name').value;
         const telephone = document.getElementById('phone').value;
         const categorie = document.getElementById('serviceCategory').value;
         const service = document.getElementById('service').value;
         const date = document.getElementById('date').value;
         const time = document.getElementById('time').value;
-        
-        // ✅ On récupère les valeurs des nouveaux champs
         const staff = document.getElementById('staffSelect').value;
         const notes = document.getElementById('notes').value;
-
         const dateHeure = `${date} ${time}:00`;
 
-        // Le payload est maintenant complet
         const reservationData = {
-            nomClient,
-            telephone,
-            categorie,
-            service,
-            dateHeure,
-            staff: staff || null, // Envoyer null si "Aucune préférence" est sélectionné
-            notes
+            nomClient, telephone, categorie, service, dateHeure, staff: staff || null, notes
         };
 
-        // 2. Envoyer les données au backend
+        // STEP B: The computer sends the information to be saved in your calendar database
         try {
-            const response = await fetch('http://localhost:3001/api/reservations', {
+            // This is the address of your backend "kitchen" that you deployed on Render
+            const backendAddress = 'http://localhost:3001/api/reservations'; // <-- Make sure this is your Render URL!
+
+            const response = await fetch(backendAddress, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(reservationData),
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Une erreur est survenue.');
+                // If there was an error saving, show an error message
+                throw new Error('Could not save the reservation.');
             }
 
-            const result = await response.json();
-            console.log('Succès:', result);
+            // If it was saved correctly, continue to the next step...
+            console.log('Reservation saved! Now preparing WhatsApp message.');
 
-            alert('Votre demande de réservation a bien été enregistrée ! Nous vous contacterons bientôt pour confirmer.');
+            // STEP C: The computer creates the WhatsApp message and opens it in a new tab
+
+            // !! IMPORTANT !!
+            // Replace the number below with YOUR WhatsApp number.
+            // It must start with the country code (like 212 for Morocco). No '+', no spaces.
+            const yourPhoneNumber = '212713305570';
+
+            const staffChoice = staff ? STAFF_MEMBERS[staff].name : 'Aucune préférence';
+
+            // This is the text of the message that will be created
+            let message = `*Nouvelle Demande de Réservation*\n\n` +
+                        `*Client:* ${nomClient}\n` +
+                        `*Téléphone:* ${telephone}\n` +
+                        `*Service:* ${service}\n` +
+                        `*Date:* ${date} à ${time}\n` +
+                        `*Coiffeur:* ${staffChoice}\n`;
+
+            if (notes) {
+                message += `*Notes:* ${notes}\n`;
+            }
             
+            // This creates the special WhatsApp link
+            const whatsappUrl = `https://wa.me/${yourPhoneNumber}?text=${encodeURIComponent(message)}`;
+            
+            // This opens the link in a new browser tab
+            window.open(whatsappUrl, '_blank');
+
+            // Finally, show a success message and clear the form
+            alert('Merci ! Votre réservation a été enregistrée. Un message WhatsApp va s\'ouvrir.');
             this.reset();
             document.getElementById('specificService').style.display = 'none';
 
         } catch (error) {
-            console.error('Erreur lors de la soumission:', error);
-            alert(`Erreur lors de la réservation : ${error.message}`);
+            console.error('Error:', error);
+            alert(`Une erreur est survenue. Veuillez réessayer.`);
         }
     });
+
+    // This is a small helper to get the full name of the staff member
+    const STAFF_MEMBERS = {
+        abdou: { name: 'Mr. Abdou' },
+        kenza: { name: 'Mme. Kenza' },
+        yassmine: { name: 'Mme. Yassmine' }
+    };
 
     // Le reste du script ne change pas
     const today = new Date().toISOString().split('T')[0];

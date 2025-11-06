@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeColor - Réservation en Ligne</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #000000 0%, #0a3d2e 50%, #1a5c47 100%);
+            min-height: 100vh;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 60px 20px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 4em;
+            font-weight: 500;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ffffff 0%, #4ade80 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            color: #a0a0a0;
+            margin-bottom: 20px;
+        }
+
+        .header .info {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            font-size: 0.95em;
+            color: #b0b0b0;
+        }
+
+        .header .info span {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Reservation Button */
+        .reserve-btn {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 20px 50px;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border: none;
+            border-radius: 15px;
+            color: #000;
+            font-size: 1.3em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(74, 222, 128, 0.3);
+        }
+
+        .reserve-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(74, 222, 128, 0.5);
+        }
+
+        /* Booking Form */
+        .booking-section {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 700px;
+            margin: 60px auto;
+            scroll-margin-top: 100px;
+        }
+
+        .booking-section h2 {
+            font-size: 2.5em;
+            font-weight: 500;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #ffffff 0%, #4ade80 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-size: 0.95em;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #4ade80;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        select option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+            border: none;
+            border-radius: 12px;
+            color: #000;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(74, 222, 128, 0.3);
+        }
+
+        .form-note {
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        #specificService {
+            display: none;
+        }
+
+        /* Contact Info */
+        .contact-info {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 40px;
+        }
+
+        .contact-info h3 {
+            font-size: 2em;
+            font-weight: 500;
+            margin-bottom: 20px;
+            color: #4ade80;
+        }
+
+        .contact-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .contact-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .contact-btn:hover {
+            background: rgba(74, 222, 128, 0.1);
+            border-color: #4ade80;
+            transform: translateY(-3px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .header .info {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .booking-section {
+                padding: 30px 20px;
+            }
+
+            .reserve-btn {
+                padding: 15px 35px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>BeColor</h1>
+            <p>Salon de Beauté</p>
+            <div class="info">
+                <span>⏰ Lun - Sam: 10h00 - 22h00</span>
+                <span>📍 Premier Étage, Apt 5, Av. Mohammed V, Rabat</span>
+            </div>
+            <a href="#booking" class="reserve-btn">🎯 Réserver Maintenant</a>
+        </div>
+
+        <!-- Booking Form -->
+        <div class="booking-section" id="booking">
+            <h2>Réserver un Rendez-vous</h2>
+            <form id="bookingForm">
+                <div class="form-group">
+                    <label for="name">Nom Complet *</label>
+                    <input type="text" id="name" name="name" required placeholder="Votre nom">
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Téléphone *</label>
+                    <input type="tel" id="phone" name="phone" required placeholder="+212 XXX-XXXXXX">
+                </div>
+
+                <div class="form-group">
+                    <label for="serviceCategory">Catégorie de Service *</label>
+                    <select id="serviceCategory" name="serviceCategory" required>
+                        <option value="">Choisissez une catégorie</option>
+                        <option value="Coiffage">Coiffage</option>
+                        <option value="Coupe">Coupe</option>
+                        <option value="Coloration">Coloration</option>
+                        <option value="Balayages">Balayages & Ombré</option>
+                        <option value="Proteine">Soin au Protéine</option>
+                        <option value="SoinCheveux">Soin de Cheveux</option>
+                        <option value="SoinVisage">Soins du Visage</option>
+                        <option value="MainsPieds">Soins des Mains et des Pieds</option>
+                        <option value="Epilation">Épilation</option>
+                        <option value="Maquillage">Maquillage</option>
+                        <option value="FauxCils">Faux Cils</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="specificService">
+                    <label for="service">Service Spécifique *</label>
+                    <select id="service" name="service" required>
+                        <option value="">Sélectionnez le service exact</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="staffSelect">Coiffeur/Coiffeuse Préféré(e) (Optionnel)</label>
+                    <select id="staffSelect" name="staff">
+                        <option value="">Aucune préférence</option>
+                        <option value="abdou">Mr. Abdou</option>
+                        <option value="kenza">Mme. Kenza</option>
+                        <option value="yassmine">Mme. Yassmine</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="date">Date Souhaitée *</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="time">Heure Souhaitée *</label>
+                    <input type="time" id="time" name="time" min="10:00" max="22:00" required>
+                </div>
+                <div class="form-group">
+                    <label for="notes">Notes Supplémentaires (Optionnel)</label>
+                    <textarea id="notes" name="notes" rows="3" placeholder="Avez-vous des demandes spécifiques ? (ex: allergie, type de produit souhaité...)"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">📩 Confirmer la Réservation</button>
+                
+                <p class="form-note">* Nous vous contacterons pour confirmer votre rendez-vous</p>
+            </form>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="contact-info">
+            <h3>Nous Contacter</h3>
+            <div class="contact-links">
+                <a href="https://wa.me/212668545844" class="contact-btn" target="_blank">
+                    💬 WhatsApp
+                </a>
+                <a href="tel:+212668545844" class="contact-btn">
+                    📞 Appeler
+                </a>
+                <a href="https://instagram.com/becolor-rabat" class="contact-btn" target="_blank">
+                    📱 Instagram
+                </a>
+                <a href="mailto:beColor.Rabat@gmail.com" class="contact-btn">
+                    📧 Email
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Services data with prices
+        const services = {
+            Coiffage: [
+                { name: "Brushing cheveux courts + Shampooing & conditioner", price: "40 DH" },
+                { name: "Brushing cheveux mi-longs + Shampooing & conditioner", price: "50 DH" },
+                { name: "Brushing cheveux longs + Shampooing & conditioner", price: "60 DH" },
+                { name: "Brushing wavy cheveux mi-longs + Shampooing & conditioner", price: "60 DH" },
+                { name: "Brushing wavy cheveux longs + Shampooing & conditioner", price: "70 DH" }
+            ],
+            Coupe: [
+                { name: "Coupe courte", price: "200 DH" },
+                { name: "Coupe simple", price: "150 DH" },
+                { name: "Coupe de pointes", price: "80 DH" }
+            ],
+            Coloration: [
+                { name: "Coloration", price: "300 DH" },
+                { name: "Coloration racines", price: "200 DH" },
+                { name: "Coloration sans ammoniaque", price: "400 DH" },
+                { name: "Coloration sans ammoniaque racines", price: "300 DH" }
+            ],
+            Balayages: [
+                { name: "Balayage cheveux court", price: "600 DH" },
+                { name: "Balayage cheveux mi-long", price: "800 DH" },
+                { name: "Balayage cheveux long", price: "1000 DH" },
+                { name: "Balayage ombré court", price: "800 DH" },
+                { name: "Balayage ombré mi-long", price: "1000 DH" },
+                { name: "Balayage ombré long", price: "1000 DH" },
+                { name: "Air Touch", price: "1200 DH" }
+            ],
+            Proteine: [
+                { name: "Protéine Tanino cheveux court", price: "600 DH" },
+                { name: "Protéine Tanino cheveux mi-long", price: "800 DH" },
+                { name: "Protéine Tanino cheveux long", price: "1000 DH" },
+                { name: "Protéine 'Soral' cheveux court", price: "800 DH" },
+                { name: "Protéine 'Soral' cheveux mi-long", price: "1000 DH" },
+                { name: "Protéine 'Soral' cheveux long", price: "1200 DH" }
+            ],
+            SoinCheveux: [
+                { name: "Soin hydratant au bac", price: "50 DH" },
+                { name: "Soin hydratant au bac premium", price: "80 DH" },
+                { name: "Soin hydratant (sous casque infra-rouge)", price: "150 DH" },
+                { name: "Soin Hydra-Therapy (protocol complet)", price: "450 DH" },
+                { name: "Soin Olaplex", price: "250 DH" }
+            ],
+            SoinVisage: [
+                { name: "Soin du visage basic", price: "250 DH" },
+                { name: "Soin mature lift avec demabrasion", price: "500 DH" },
+                { name: "Soin éclat", price: "400 DH" },
+                { name: "Soin hydratant", price: "400 DH" },
+                { name: "Soin détoxinant", price: "400 DH" },
+                { name: "Soin peau sèche", price: "350 DH" },
+                { name: "Soin purifiant", price: "350 DH" }
+            ],
+            MainsPieds: [
+                { name: "Manicurie simple", price: "60 DH" },
+                { name: "Manicurie simple avec french", price: "80 DH" },
+                { name: "Manicurie spa (Gommage + Masque)", price: "100 DH" },
+                { name: "Pédicurie simple", price: "100 DH" },
+                { name: "Pédicurie spa", price: "150 DH" },
+                { name: "Manicurie et pédicurie spa", price: "200 DH" },
+                { name: "Pose vernis simple", price: "25 DH" },
+                { name: "Pose vernis (Avec limage)", price: "30 DH" },
+                { name: "Pose vernis semi-permanent", price: "100 DH" },
+                { name: "Pose french", price: "40 DH" },
+                { name: "Pose de faux ongles", price: "80 DH" }
+            ],
+            Epilation: [
+                { name: "Épilation visage", price: "70 DH" },
+                { name: "Épilation sourcils", price: "30 DH" },
+                { name: "Épilation duvet", price: "20 DH" },
+                { name: "Épilation des aisselles", price: "40 DH" },
+                { name: "Épilation ½ jambes", price: "60 DH" },
+                { name: "Épilation jambes complètes", price: "100 DH" },
+                { name: "Épilation des bras", price: "60 DH" },
+                { name: "Épilation de bord du maillot", price: "40 DH" },
+                { name: "Épilation du maillot intégral", price: "80 DH" }
+            ],
+            Maquillage: [
+                { name: "Maquillage du jour", price: "100 DH" },
+                { name: "Maquillage soirée", price: "200 DH" }
+            ],
+            FauxCils: [
+                { name: "Cils par cils", price: "100 DH" }
+            ]
+        };
+
+        // Handle category selection
+        document.getElementById('serviceCategory').addEventListener('change', function() {
+        const category = this.value;
+        const serviceSelect = document.getElementById('service');
+        const specificServiceDiv = document.getElementById('specificService');
+        
+        if (category && services[category]) {
+            serviceSelect.innerHTML = '<option value="">Sélectionnez le service exact</option>';
+            services[category].forEach(service => {
+                const option = document.createElement('option');
+                option.value = `${service.name} - ${service.price}`;
+                option.textContent = `${service.name} - ${service.price}`;
+                serviceSelect.appendChild(option);
+            });
+            specificServiceDiv.style.display = 'block';
+            serviceSelect.required = true;
+        } else {
+            specificServiceDiv.style.display = 'none';
+            serviceSelect.required = false;
+        }
+    });
+
+    // --- NOUVELLE LOGIQUE POUR L'ENVOI DU FORMULAIRE ---
+    document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); // Empêche le rechargement de la page
+        
+        // 1. Récupérer et formater les données pour le backend
+        const nomClient = document.getElementById('name').value;
+        const telephone = document.getElementById('phone').value;
+        const categorie = document.getElementById('serviceCategory').value;
+        const service = document.getElementById('service').value;
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        
+        // ✅ On récupère les valeurs des nouveaux champs
+        const staff = document.getElementById('staffSelect').value;
+        const notes = document.getElementById('notes').value;
+
+        const dateHeure = `${date} ${time}:00`;
+
+        // Le payload est maintenant complet
+        const reservationData = {
+            nomClient,
+            telephone,
+            categorie,
+            service,
+            dateHeure,
+            staff: staff || null, // Envoyer null si "Aucune préférence" est sélectionné
+            notes
+        };
+
+        // 2. Envoyer les données au backend
+        try {
+            const response = await fetch('http://localhost:3001/api/reservations', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(reservationData),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Une erreur est survenue.');
+            }
+
+            const result = await response.json();
+            console.log('Succès:', result);
+
+            alert('Votre demande de réservation a bien été enregistrée ! Nous vous contacterons bientôt pour confirmer.');
+            
+            this.reset();
+            document.getElementById('specificService').style.display = 'none';
+
+        } catch (error) {
+            console.error('Erreur lors de la soumission:', error);
+            alert(`Erreur lors de la réservation : ${error.message}`);
+        }
+    });
+
+    // Le reste du script ne change pas
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').setAttribute('min', today);
+
+    document.querySelector('.reserve-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('booking').scrollIntoView({ behavior: 'smooth' });
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Calendar System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 32px;
+        }
+
+        .login-box h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .login-box p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .demo-info {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .calendar-container {
+            display: none;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .calendar-container.active {
+            display: block;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-top h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-logout:hover {
+            background: #c82333;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .view-switcher {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .view-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .view-btn.active {
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .date-nav {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 8px 12px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .nav-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-today {
+            padding: 8px 16px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-today:hover {
+            background: #5568d3;
+        }
+
+        .current-date {
+            font-weight: 600;
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .staff-filter {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-new {
+            margin-left: auto;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-new:hover {
+            background: #218838;
+        }
+
+        .calendar-content {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        .calendar-grid {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .day-view, .week-view {
+            display: grid;
+            gap: 1px;
+            background: #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .day-view {
+            grid-template-columns: 80px repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .week-view {
+            grid-template-columns: 80px repeat(7, minmax(150px, 1fr));
+            min-width: 1000px;
+        }
+
+        .time-header, .staff-header, .day-header {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .time-slot {
+            background: white;
+            padding: 15px 10px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .appointment-slot {
+            background: white;
+            padding: 10px;
+            min-height: 80px;
+            border-top: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .appointment-slot:hover {
+            background: #f8f9fa;
+        }
+
+        .appointment {
+            padding: 12px;
+            border-radius: 8px;
+            color: white;
+            height: 100%;
+            position: relative;
+        }
+
+        .appointment.abdou {
+            background: #3b82f6;
+        }
+
+        .appointment.kenza {
+            background: #a855f7;
+        }
+
+        .appointment.yassmine {
+            background: #ec4899;
+        }
+
+        .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .appointment-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .appointment-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .icon-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .appointment-service {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        .appointment-details {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .month-view {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background: #e0e0e0;
+        }
+
+        .month-day {
+            background: white;
+            min-height: 120px;
+            padding: 8px;
+        }
+
+        .month-day.other-month {
+            opacity: 0.4;
+        }
+
+        .month-day-number {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .month-day-number.today {
+            background: #667eea;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .month-appointments {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .month-appointment {
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .month-appointment:hover {
+            opacity: 0.9;
+        }
+
+        .month-more {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+            padding-left: 4px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+        }
+
+        .btn-close:hover {
+            background: #f0f0f0;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .modal-footer {
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-secondary {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #f8f9fa;
+        }
+
+        .btn-save {
+            flex: 1;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-save:hover {
+            background: #5568d3;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .staff-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .staff-indicator.abdou {
+            background: #3b82f6;
+        }
+
+        .staff-indicator.kenza {
+            background: #a855f7;
+        }
+
+        .staff-indicator.yassmine {
+            background: #ec4899;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                width: 100%;
+            }
+
+            .btn-new {
+                width: 100%;
+                margin-left: 0;
+                justify-content: center;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+        <div class="login-box">
+            <div class="login-icon">🔒</div>
+            <h1>Owner Access</h1>
+            <p>Secure Calendar Management</p>
+            
+            <div id="loginError" class="error-message"></div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail" placeholder="owner@example.com">
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password">
+            </div>
+            
+            <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
+            
+            <div class="demo-info">
+                <strong>Demo Credentials:</strong><br>
+                Email: owner@example.com<br>
+                Password: admin123
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Screen -->
+    <div id="calendarScreen" class="calendar-container">
+        <div class="header">
+            <div class="header-top">
+                <h1>Reservation Calendar</h1>
+                <button class="btn-logout" onclick="handleLogout()">Logout</button>
+            </div>
+            
+            <div class="controls">
+                <div class="view-switcher">
+                    <button class="view-btn active" data-view="day" onclick="switchView('day')">Day</button>
+                    <button class="view-btn" data-view="week" onclick="switchView('week')">Week</button>
+                    <button class="view-btn" data-view="month" onclick="switchView('month')">Month</button>
+                </div>
+                
+                <div class="date-nav">
+                    <button class="nav-btn" onclick="navigateDate(-1)">‹</button>
+                    <button class="btn-today" onclick="goToToday()">Today</button>
+                    <button class="nav-btn" onclick="navigateDate(1)">›</button>
+                    <span class="current-date" id="currentDateLabel"></span>
+                </div>
+                
+                <select class="staff-filter" id="staffFilter" onchange="renderCalendar()">
+                    <option value="all">All Staff</option>
+                    <option value="abdou">Mr. Abdou</option>
+                    <option value="kenza">Mme. Kenza</option>
+                    <option value="yassmine">Mme. Yassmine</option>
+                </select>
+                
+                <button class="btn-new" onclick="openModal()">
+                    <span>+</span> New Appointment
+                </button>
+            </div>
+        </div>
+        
+        <div class="calendar-content">
+            <div id="calendarGrid" class="calendar-grid"></div>
+        </div>
+    </div>
+
+    <!-- Appointment Modal -->
+    <div id="appointmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">New Appointment</h2>
+                <button class="btn-close" onclick="closeModal()">×</button>
+            </div>
+            
+            <div class="modal-body">
+                <form id="bookingForm">
+                    <div class="form-group">
+                        <label>Client Name *</label>
+                        <input type="text" id="clientName" placeholder="Enter client name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="clientPhone" placeholder="+1 234 567 8900">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Service *</label>
+                        <select id="serviceSelect">
+                            <option value="">Select a service</option>
+                            <option value="haircut" data-duration="60">Haircut (60 min)</option>
+                            <option value="coloring" data-duration="120">Hair Coloring (120 min)</option>
+                            <option value="styling" data-duration="45">Styling (45 min)</option>
+                            <option value="treatment" data-duration="90">Hair Treatment (90 min)</option>
+                            <option value="manicure" data-duration="45">Manicure (45 min)</option>
+                            <option value="pedicure" data-duration="60">Pedicure (60 min)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Staff Member *</label>
+                        <select id="staffSelect">
+                            <option value="">Select staff member</option>
+                            <option value="abdou">Mr. Abdou</option>
+                            <option value="kenza">Mme. Kenza</option>
+                            <option value="yassmine">Mme. Yassmine</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date *</label>
+                            <input type="date" id="appointmentDate">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Time *</label>
+                            <input type="time" id="appointmentTime">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea id="appointmentNotes" placeholder="Additional notes..."></textarea>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn-save" onclick="saveAppointment()">Save</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- CONFIGURATION ---
+    const API_URL = 'http://localhost:3001/api/reservations';
+    const OWNER_EMAIL = 'becolor.rabat@gmail.com';
+    const OWNER_PASSWORD = 'abdelilah1234';
+    
+    const STAFF_MEMBERS = {
+        abdou: { name: 'Mr. Abdou', color: 'abdou' },
+        kenza: { name: 'Mme. Kenza', color: 'kenza' },
+        yassmine: { name: 'Mme. Yassmine', color: 'yassmine' }
+    };
+
+    // --- VARIABLES D'ÉTAT ---
+    let currentView = 'day';
+    let currentDate = new Date();
+    let appointments = [];
+    let editingId = null;
+
+    // --- FONCTIONS DE COMMUNICATION AVEC LE BACKEND (API) ---
+
+    async function fetchAppointments() {
+        console.log("--- DÉBUT DU DÉBOGAGE ---");
+        console.log("1. Démarrage de fetchAppointments pour récupérer les données...");
+        try {
+            // Force le navigateur à ne pas utiliser le cache pour cette requête
+            const response = await fetch(API_URL, { cache: 'no-store' });
+            if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
+            
+            const data = await response.json();
+            console.log("2. Données brutes reçues de l'API:", data);
+            
+            if (!Array.isArray(data)) {
+                console.error("ERREUR CRITIQUE : Les données reçues ne sont pas un tableau !");
+                return;
+            }
+
+            appointments = data;
+            renderCalendar();
+        } catch (error) {
+            console.error("ERREUR CRITIQUE lors de la récupération des rendez-vous:", error);
+            alert('Impossible de charger les données des rendez-vous. Vérifiez la console.');
+        }
+    }
+
+    async function saveAppointment() { /* ... cette fonction reste inchangée ... */ }
+    async function deleteAppointment(id) { /* ... cette fonction reste inchangée ... */ }
+
+    // --- LOGIQUE DE L'INTERFACE ---
+
+    function handleLogin() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        if (email === OWNER_EMAIL && password === OWNER_PASSWORD) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('calendarScreen').classList.add('active');
+            updateDateLabel();
+            fetchAppointments();
+        } else { /* ... */ }
+    }
+    
+    function handleLogout() { /* ... */ }
+
+    function renderCalendar() {
+        console.log("3. Démarrage de renderCalendar pour dessiner l'affichage.");
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+        if (currentView === 'day') renderDayView(grid);
+    }
+
+    function renderDayView(container) {
+    container.className = 'calendar-grid day-view';
+    
+    const dateStr = formatDate(currentDate);
+    const selectedStaff = document.getElementById('staffFilter').value;
+    let staffList = selectedStaff === 'all' ? Object.keys(STAFF_MEMBERS) : [selectedStaff];
+
+    if (selectedStaff === 'all') {
+        staffList.push(null);
+    }
+
+    // Headers
+    container.innerHTML = '<div class="time-header">Time</div>';
+    staffList.forEach(staffId => {
+        const headerText = staffId === null ? 'Non Assigné' : STAFF_MEMBERS[staffId].name;
+        container.innerHTML += `<div class="staff-header">${headerText}</div>`;
+    });
+    
+    // Time slots
+    for (let hour = 8; hour <= 20; hour++) {
+        container.innerHTML += `<div class="time-slot">${hour}:00</div>`;
+
+        staffList.forEach(staffId => {
+            // ✅ LOGIQUE AMÉLIORÉE : On utilise .filter() pour trouver TOUS les RDV de l'heure
+            const appointmentsInHour = appointments.filter(a => {
+                const aptDate = a.dateHeure.split(' ')[0];
+                if (aptDate !== dateStr) return false; // Ne pas continuer si la date ne correspond pas
+
+                // On extrait l'heure exacte du rendez-vous
+                const aptHour = parseInt(a.dateHeure.split(' ')[1].split(':')[0], 10);
+                return aptHour === hour && a.staff === staffId;
+            });
+            
+            const slotDiv = document.createElement('div');
+            slotDiv.className = 'appointment-slot';
+            
+            if (appointmentsInHour.length > 0) {
+                // On boucle sur les RDV trouvés pour les afficher tous
+                appointmentsInHour.forEach(apt => {
+                    const staffColor = apt.staff ? STAFF_MEMBERS[apt.staff].color : 'default-color';
+                    const aptElement = document.createElement('div');
+                    aptElement.className = `appointment ${staffColor}`;
+                    aptElement.style.marginBottom = '4px'; // Espace entre les RDV si plusieurs
+                    aptElement.innerHTML = `
+                        <div class="appointment-header">
+                            <div class="appointment-name">${apt.nomClient}</div>
+                            <div class="appointment-actions">
+                                <button class="icon-btn" onclick="openModal(${apt.id})">✏️</button>
+                                <button class="icon-btn" onclick="deleteAppointment(${apt.id})">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="appointment-service">${apt.service.split(' - ')[0]}</div>
+                        <div class="appointment-details">${apt.telephone || ''}</div>
+                    `;
+                    slotDiv.appendChild(aptElement);
+                });
+            } else {
+                // Si le créneau est vide, on le rend cliquable pour créer un RDV
+                const timeStr = `${String(hour).padStart(2, '0')}:00`;
+                slotDiv.onclick = () => openModal(null, staffId, dateStr, timeStr);
+            }
+            container.appendChild(slotDiv);
+        });
+    }
+}
+    
+    // --- MODAL ET UTILITAIRES ---
+
+    function openModal(id = null, staff = null, date = null, time = null) {
+        const modal = document.getElementById('appointmentModal');
+        const title = document.getElementById('modalTitle');
+        const form = document.getElementById('bookingForm'); // On récupère le formulaire
+        editingId = id;
+
+        if (id) {
+            const apt = appointments.find(a => a.id === id);
+            if (!apt) return;
+            const [aptDate, aptTime] = apt.dateHeure.split(' ');
+            title.textContent = 'Edit Appointment';
+            document.getElementById('clientName').value = apt.nomClient;
+            document.getElementById('clientPhone').value = apt.telephone || '';
+            document.getElementById('serviceSelect').value = apt.service;
+            document.getElementById('staffSelect').value = apt.staff;
+            document.getElementById('appointmentDate').value = aptDate;
+            document.getElementById('appointmentTime').value = aptTime.substring(0, 5);
+            document.getElementById('appointmentNotes').value = apt.notes || '';
+        } else {
+            title.textContent = 'New Appointment';
+            form.reset(); // ✅ CORRECTION : On utilise .reset() sur le formulaire
+            document.getElementById('staffSelect').value = staff || '';
+            document.getElementById('appointmentDate').value = date || formatDate(currentDate);
+            document.getElementById('appointmentTime').value = time ? time.substring(0, 5) : '09:00';
+        }
+        modal.classList.add('show');
+    }
+
+    function closeModal() {
+        document.getElementById('appointmentModal').classList.remove('show');
+        editingId = null;
+    }
+
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    // Fonctions de navigation (simplifiées, peuvent être étendues)
+    function updateDateLabel() { document.getElementById('currentDateLabel').textContent = currentDate.toDateString(); }
+    function navigateDate(direction) { currentDate.setDate(currentDate.getDate() + direction); updateDateLabel(); renderCalendar(); }
+    function goToToday() { currentDate = new Date(); updateDateLabel(); renderCalendar(); }
+    function switchView(view) { currentView = view; /* Logique pour changer de vue */ renderCalendar(); }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# --- General ---
+# System files
+.DS_Store
+Thumbs.db
+
+# --- Backend (Node.js) ---
+# Dependencies folder
+backend/node_modules/
+
+# Environment variables file - VERY IMPORTANT!
+backend/.env
+
+# Log files
+backend/npm-debug.log*
+backend/yarn-debug.log*
+backend/yarn-error.log*
+
+# --- Frontend ---
+# If you ever add a build step or dependencies
+frontend/node_modules/
+frontend/dist/
+frontend/build/

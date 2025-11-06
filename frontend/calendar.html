@@ -637,11 +637,6 @@
             
             <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
             
-            <div class="demo-info">
-                <strong>Demo Credentials:</strong><br>
-                Email: owner@example.com<br>
-                Password: admin123
-            </div>
         </div>
     </div>
 
@@ -798,8 +793,96 @@
         }
     }
 
-    async function saveAppointment() { /* ... cette fonction reste inchangée ... */ }
-    async function deleteAppointment(id) { /* ... cette fonction reste inchangée ... */ }
+    async function saveAppointment() {
+        // 1. On commence par un log pour être sûr que la fonction est appelée
+        console.log("1. Le bouton Save a été cliqué, la fonction saveAppointment démarre.");
+
+        // 2. On récupère les données du formulaire
+        const appointmentData = {
+            nomClient: document.getElementById('clientName').value,
+            telephone: document.getElementById('clientPhone').value,
+            service: document.getElementById('serviceSelect').value,
+            // On combine la date et l'heure pour créer une chaîne ISO compatible
+            dateHeure: `${document.getElementById('appointmentDate').value}T${document.getElementById('appointmentTime').value}:00`,
+            staff: document.getElementById('staffSelect').value,
+            notes: document.getElementById('appointmentNotes').value
+        };
+
+        console.log("2. Données collectées du formulaire :", appointmentData);
+
+        // 3. On détermine si c'est une création (POST) ou une modification (PUT)
+        const isEditing = editingId !== null;
+        const url = isEditing ? `${API_URL}/${editingId}` : API_URL;
+        const method = isEditing ? 'PUT' : 'POST';
+
+        console.log(`3. Prêt à envoyer une requête ${method} à l'URL : ${url}`);
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json' // Très important !
+                },
+                body: JSON.stringify(appointmentData) // On envoie les données en format JSON
+            });
+
+            // 4. On vérifie si le serveur a répondu avec une erreur
+            if (!response.ok) {
+                const errorData = await response.json(); // On essaie de lire le message d'erreur du serveur
+                throw new Error(`Erreur du serveur (${response.status}): ${errorData.error}`);
+            }
+
+            console.log("4. Le serveur a répondu avec succès !");
+
+            // 5. Tout a réussi, on ferme la modale et on met à jour le calendrier
+            closeModal();
+            await fetchAppointments(); // On recharge TOUTES les données pour être sûr que tout est à jour
+
+            console.log("5. Calendrier mis à jour.");
+
+        } catch (error) {
+            console.error("ERREUR CRITIQUE dans saveAppointment:", error);
+            alert(`Une erreur est survenue lors de l'enregistrement : ${error.message}`);
+        }
+    }
+    async function deleteAppointment(id) {
+        // 1. Demander une confirmation à l'utilisateur
+        //    Le "\n" crée un saut de ligne dans la boîte de dialogue pour une meilleure lisibilité.
+        const confirmation = confirm("Êtes-vous sûr de vouloir supprimer ce rendez-vous ?\nCette action est irréversible.");
+
+        // 2. Si l'utilisateur annule, on arrête tout
+        if (!confirmation) {
+            console.log("Suppression annulée par l'utilisateur.");
+            return; // Arrête l'exécution de la fonction
+        }
+
+        console.log(`Tentative de suppression du rendez-vous avec l'ID : ${id}`);
+
+        // 3. Préparer et envoyer la requête de suppression au backend
+        try {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE' // La méthode HTTP pour supprimer une ressource
+            });
+
+            // 4. Vérifier si le serveur a répondu avec une erreur
+            if (!response.ok) {
+                const errorData = await response.json(); // Essayer de lire le message d'erreur du serveur
+                // Lancer une erreur pour être attrapé par le bloc catch
+                throw new Error(`Erreur du serveur (${response.status}): ${errorData.error || 'Erreur inconnue'}`);
+            }
+
+            console.log(`Rendez-vous ${id} supprimé avec succès.`);
+
+            // 5. Mettre à jour l'affichage en rechargeant les données
+            //    C'est la manière la plus simple et la plus fiable de s'assurer que le calendrier est correct.
+            await fetchAppointments();
+
+        } catch (error) {
+            // 6. En cas d'erreur (réseau ou serveur), l'afficher à l'utilisateur
+            console.error("ERREUR CRITIQUE lors de la suppression :", error);
+            alert(`Impossible de supprimer le rendez-vous : ${error.message}`);
+        }
+    }
 
     // --- LOGIQUE DE L'INTERFACE ---
 
@@ -817,6 +900,7 @@
     function handleLogout() { /* ... */ }
 
     function renderCalendar() {
+        console.log("3. renderCalendar a bien reçu les données:", appointments); 
         console.log("3. Démarrage de renderCalendar pour dessiner l'affichage.");
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = '';
@@ -826,49 +910,56 @@
     function renderDayView(container) {
     container.className = 'calendar-grid day-view';
     
-    const dateStr = formatDate(currentDate);
+    // On récupère la date du jour au format YYYY-MM-DD pour la comparaison
+    const currentDateString = formatDate(currentDate);
     const selectedStaff = document.getElementById('staffFilter').value;
-    let staffList = selectedStaff === 'all' ? Object.keys(STAFF_MEMBERS) : [selectedStaff];
+    const staffList = selectedStaff === 'all' ? Object.keys(STAFF_MEMBERS) : [selectedStaff];
 
-    if (selectedStaff === 'all') {
-        staffList.push(null);
-    }
-
-    // Headers
+    // --- Génération des en-têtes (inchangé) ---
     container.innerHTML = '<div class="time-header">Time</div>';
     staffList.forEach(staffId => {
-        const headerText = staffId === null ? 'Non Assigné' : STAFF_MEMBERS[staffId].name;
+        const headerText = STAFF_MEMBERS[staffId] ? STAFF_MEMBERS[staffId].name : 'Non Assigné';
         container.innerHTML += `<div class="staff-header">${headerText}</div>`;
     });
+    container.style.gridTemplateColumns = `auto repeat(${staffList.length}, 1fr)`;
     
-    // Time slots
+    // --- Génération des créneaux horaires ---
     for (let hour = 8; hour <= 20; hour++) {
         container.innerHTML += `<div class="time-slot">${hour}:00</div>`;
 
         staffList.forEach(staffId => {
-            // ✅ LOGIQUE AMÉLIORÉE : On utilise .filter() pour trouver TOUS les RDV de l'heure
-            const appointmentsInHour = appointments.filter(a => {
-                const aptDate = a.dateHeure.split(' ')[0];
-                if (aptDate !== dateStr) return false; // Ne pas continuer si la date ne correspond pas
+            
+            // --- ✅ LOGIQUE DE FILTRAGE CORRIGÉE ---
+            const appointmentsInHour = appointments.filter(apt => {
+                // 1. On convertit la date du RDV en objet Date
+                const aptDate = new Date(apt.dateheure);
 
-                // On extrait l'heure exacte du rendez-vous
-                const aptHour = parseInt(a.dateHeure.split(' ')[1].split(':')[0], 10);
-                return aptHour === hour && a.staff === staffId;
+                // 2. On compare la date (YYYY-MM-DD)
+                const isSameDay = aptDate.toISOString().split('T')[0] === currentDateString;
+
+                // 3. On compare l'heure (en ignorant le fuseau horaire pour la simplicité ici)
+                const isSameHour = aptDate.getHours() === hour;
+
+                // 4. On compare le membre du staff
+                const isSameStaff = apt.staff === staffId;
+
+                return isSameDay && isSameHour && isSameStaff;
             });
             
             const slotDiv = document.createElement('div');
             slotDiv.className = 'appointment-slot';
             
             if (appointmentsInHour.length > 0) {
-                // On boucle sur les RDV trouvés pour les afficher tous
                 appointmentsInHour.forEach(apt => {
-                    const staffColor = apt.staff ? STAFF_MEMBERS[apt.staff].color : 'default-color';
+                    const staffData = STAFF_MEMBERS[apt.staff];
+                    const staffColor = staffData ? staffData.color : 'default-color';
                     const aptElement = document.createElement('div');
                     aptElement.className = `appointment ${staffColor}`;
-                    aptElement.style.marginBottom = '4px'; // Espace entre les RDV si plusieurs
+                    
+                    // On utilise "nomclient" et "service" en minuscules
                     aptElement.innerHTML = `
                         <div class="appointment-header">
-                            <div class="appointment-name">${apt.nomClient}</div>
+                            <div class="appointment-name">${apt.nomclient}</div>
                             <div class="appointment-actions">
                                 <button class="icon-btn" onclick="openModal(${apt.id})">✏️</button>
                                 <button class="icon-btn" onclick="deleteAppointment(${apt.id})">🗑️</button>
@@ -880,9 +971,8 @@
                     slotDiv.appendChild(aptElement);
                 });
             } else {
-                // Si le créneau est vide, on le rend cliquable pour créer un RDV
                 const timeStr = `${String(hour).padStart(2, '0')}:00`;
-                slotDiv.onclick = () => openModal(null, staffId, dateStr, timeStr);
+                slotDiv.onclick = () => openModal(null, staffId, currentDateString, timeStr);
             }
             container.appendChild(slotDiv);
         });
@@ -894,24 +984,34 @@
     function openModal(id = null, staff = null, date = null, time = null) {
         const modal = document.getElementById('appointmentModal');
         const title = document.getElementById('modalTitle');
-        const form = document.getElementById('bookingForm'); // On récupère le formulaire
+        const form = document.getElementById('bookingForm');
         editingId = id;
 
         if (id) {
+            // On trouve le rendez-vous dans notre tableau de données
             const apt = appointments.find(a => a.id === id);
-            if (!apt) return;
-            const [aptDate, aptTime] = apt.dateHeure.split(' ');
-            title.textContent = 'Edit Appointment';
-            document.getElementById('clientName').value = apt.nomClient;
+            if (!apt) return; // Sécurité si le rdv n'est pas trouvé
+
+            // --- ✅ CORRECTIONS APPLIQUÉES ICI ---
+            
+            // 1. On utilise "apt.dateheure" (minuscules) et on le sépare avec le "T"
+            const [aptDate, aptTimeWithMs] = apt.dateheure.split('T');
+            const aptTime = aptTimeWithMs.substring(0, 5); // Garde seulement HH:MM
+
+            title.textContent = 'Modifier le rendez-vous';
+            
+            // 2. On utilise les noms de propriétés en minuscules
+            document.getElementById('clientName').value = apt.nomclient;
             document.getElementById('clientPhone').value = apt.telephone || '';
             document.getElementById('serviceSelect').value = apt.service;
             document.getElementById('staffSelect').value = apt.staff;
             document.getElementById('appointmentDate').value = aptDate;
-            document.getElementById('appointmentTime').value = aptTime.substring(0, 5);
+            document.getElementById('appointmentTime').value = aptTime;
             document.getElementById('appointmentNotes').value = apt.notes || '';
+            
         } else {
-            title.textContent = 'New Appointment';
-            form.reset(); // ✅ CORRECTION : On utilise .reset() sur le formulaire
+            title.textContent = 'Nouveau rendez-vous';
+            form.reset();
             document.getElementById('staffSelect').value = staff || '';
             document.getElementById('appointmentDate').value = date || formatDate(currentDate);
             document.getElementById('appointmentTime').value = time ? time.substring(0, 5) : '09:00';
